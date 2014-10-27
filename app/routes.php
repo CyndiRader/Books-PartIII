@@ -2,6 +2,18 @@
 
 Route::model('book', 'Book');
 
+Route::get('/', function() {
+  return Redirect::to("books");
+});
+
+Route::get('books', function(){
+  $books = Book::all();
+  return View::make('books/index')
+    ->with('books', $books);
+});
+
+Route::group(array('before'=>'auth'), function(){
+
 Route::get('books/{book}/edit', function(Book $book) {
 	return View::make('books.edit')
 	->with('book', $book)
@@ -25,15 +37,6 @@ Route::delete('books/{book}', function(Book $book) {
     ->with('message', 'Successfully deleted book!');
 });
 
-Route::get('/', function() {
-  return Redirect::to("books");
-});
-
-Route::get('books', function(){
-  $books = Book::all();
-  return View::make('books/index')
-    ->with('books', $books);
-});
 
 Route::get('books/create', function() {
 	$book = new Book;
@@ -54,7 +57,23 @@ Route::get('books/{id}', function($id) {
 	->with('book', $book);
 });
 
+});
 
+Route::get('login', array('before'=>'guest', function(){
+  return View::make('login');
+}));
 
+Route::post('login', function(){
+  if(Auth::attempt(Input::only('username', 'password')))
+    return Redirect::intended('/');
+  else
+    return Redirect::back()
+      ->withInput()
+      ->with('error', "Invalid credentials");
+});
 
+Route::get('logout', function(){
+  Auth::logout();
+  return Redirect::to('/');
+});
 
